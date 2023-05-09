@@ -10,8 +10,20 @@ from selenium.webdriver.common.by import By
  
 options = Options()
 options.add_argument("--incognito")
+options.page_load_strategy = 'none'
 driver = webdriver.Chrome(options=options, executable_path=os.path.join(os.path.dirname(__file__), os.pardir, 'bin', 'chromedriver'))
-print(driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*google*"]}))
+print(driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": [
+    "*.css",
+    "*.png",
+    "*.jpg", 
+    "*.webp",
+    "*.woff2",
+    "*gstatic*",
+    "*uviewer*",
+    "*youtube*"
+    ]}))
+
+print(driver.execute_cdp_cmd('Network.enable', {}))
 
 driver.get("https://www.google.com")
 search_box = driver.find_element(by=By.NAME, value='q')  # Find search input box.
