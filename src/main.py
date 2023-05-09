@@ -10,7 +10,7 @@ from selenium.webdriver.common.by import By
  
 options = Options()
 options.add_argument("--incognito")
-options.page_load_strategy = 'none'
+options.page_load_strategy = 'eager'
 driver = webdriver.Chrome(options=options, executable_path=os.path.join(os.path.dirname(__file__), os.pardir, 'bin', 'chromedriver'))
 print(driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": [
     "*.css",
