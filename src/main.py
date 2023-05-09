@@ -5,6 +5,7 @@ import trio
 import json
 import argparse
 import time
+import multiprocessing
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
@@ -16,7 +17,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from functools import partial
 
-TEST_RUN=False
+TEST_RUN=True
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -45,8 +46,7 @@ async def test_run(driver, target):
         listener = session.listen(devtools.network.ResponseReceived)
         async with trio.open_nursery() as nursery:
             nursery.start_soon(partial(start_listening, counter), listener)
-            driver.get(target)
-            print(driver.title)
+
 
 def run():
     options = Options()
@@ -69,7 +69,14 @@ def run():
     driver.execute_cdp_cmd('Network.enable', {})
 
     if TEST_RUN:
-        trio.run(partial(test_run, driver, target))
+        p = multiprocessing.Process(target=lambda : trio.run(test_run, driver, target))
+        print(driver.title)
+        p.start()
+        driver.get(target)
+        p.join(5)
+        if p.is_alive():
+            p.kill();
+
     else:
         driver.get(target)
         print(driver.title)
