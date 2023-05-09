@@ -17,8 +17,6 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from functools import partial
 
-TEST_RUN=True
-
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--black-list')
@@ -38,14 +36,13 @@ async def start_listening(counter, listener):
         counter += 1
         print(counter, 'receive:', event.response.url[:80])
 
-async def test_run(driver, target):
+async def event_listener(driver, target):
     async with driver.bidi_connection() as connection:
         session, devtools = connection.session, connection.devtools
         await session.execute(devtools.network.enable())
         counter = 0
         listener = session.listen(devtools.network.ResponseReceived)
-        async with trio.open_nursery() as nursery:
-            nursery.start_soon(partial(start_listening, counter), listener)
+        await start_listening(counter, listener)
 
 
 def run():
@@ -68,19 +65,13 @@ def run():
         'Network.setBlockedURLs', {'urls': black_list})
     driver.execute_cdp_cmd('Network.enable', {})
 
-    if TEST_RUN:
-        p = multiprocessing.Process(target=lambda : trio.run(test_run, driver, target))
-        print(driver.title)
-        p.start()
-        driver.get(target)
-        p.join(5)
-        if p.is_alive():
-            p.kill();
-
-    else:
-        driver.get(target)
-        print(driver.title)
-
+    p = multiprocessing.Process(target=lambda : trio.run(event_listener, driver, target))
+    p.start()
+    driver.get(target)
+    p.join(5)
+    if p.is_alive():
+        p.kill();
+    print(driver.title)
     driver.quit()
 
 if __name__ == "__main__":
