@@ -6,10 +6,12 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+
  
 options = Options()
-options.binary_location = os.path.join(os.path.dirname(__file__), os.pardir, 'bin')
-driver = webdriver.Chrome(executable_path=os.path.join(os.path.dirname(__file__), os.pardir, 'bin', 'chromedriver.exe'))
+options.add_argument("--incognito")
+driver = webdriver.Chrome(options=options, executable_path=os.path.join(os.path.dirname(__file__), os.pardir, 'bin', 'chromedriver'))
+print(driver.execute_cdp_cmd("Network.setBlockedURLs", {"urls": ["*google*"]}))
 
 driver.get("https://www.google.com")
 search_box = driver.find_element(by=By.NAME, value='q')  # Find search input box.
