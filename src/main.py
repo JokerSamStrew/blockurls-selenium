@@ -14,6 +14,7 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--black-list')
     parser.add_argument('--target')
+    parser.add_argument('--timeout', type=int, default=15)
     args = parser.parse_args()
     if args.black_list is None:
         print("No blacklist")
@@ -22,7 +23,7 @@ def get_args():
         print("No target")
         exit(1)
 
-    return json.loads(args.black_list), args.target
+    return json.loads(args.black_list), args.target, args.timeout
 
 
 async def start_listening(listener):
@@ -55,8 +56,8 @@ def run():
     driver = webdriver.Chrome(service=Service(
         ChromeDriverManager().install()), options=get_options())
 
-    black_list, target = get_args()
-    print("black list:", black_list, '\ntarget:', target)
+    black_list, target, timeout = get_args()
+    print("black list:", black_list, '\ntarget:', target, '\ntimeout:', timeout)
 
     driver.execute_cdp_cmd(
         'Network.setBlockedURLs', {'urls': black_list})
@@ -64,14 +65,17 @@ def run():
 
     p = multiprocessing.Process(
         target=lambda: trio.run(event_listener, driver, target))
+    print('listen events...')
     p.start()
     driver.get(target)
-    p.join(5)
+    p.join(timeout)
     if p.is_alive():
         p.kill()
-    print(driver.title)
-    driver.quit()
 
+    print('\nTitle:', driver.title)
+    print('Quiting driver...', end='')
+    driver.quit()
+    print('end')
 
 if __name__ == "__main__":
     run()

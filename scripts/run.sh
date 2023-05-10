@@ -8,4 +8,4 @@ MAIN_DIR="$SCRIPT_DIR/../src"
 MAIN=$MAIN_DIR/main.py
 
 # python -m poetry run -C "$MAIN_DIR" python "$MAIN" "$TARGET" "$BLACK_LIST"
-python "$MAIN" --target "$TARGET" --black-list "$BLACK_LIST"
+python "$MAIN" --target "$TARGET" --black-list "$BLACK_LIST" --timeout 15
